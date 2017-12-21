@@ -46,12 +46,12 @@ class okex():
         t2 = self.get_ticker(symbol_2)
         t3 = self.get_ticker(symbol_3)
 
-        if (float(t2['sell']) / (float(t3['buy']) * float(t1['buy']))) > Threshold:
+        if (float(t2['sell']) / float(t3['buy']) / float(t1['buy'])) > Threshold:
             print ('[trader] ' + symbols[0] + '--->' + symbols[2] + '--->' + symbols[1] + '--->' + symbols[0])
             print (t1)
             print (t2)
             print (t3)
-        elif (float(t1['sell']) / (float(t3['buy']) * float(t2['buy']))) > Threshold:
+        elif (float(t1['sell']) / float(t3['buy']) / float(t2['buy'])) > Threshold:
             print ('[trader] ' + symbols[0] + '--->' + symbols[1] + '--->' + symbols[2] + '--->' + symbols[0])
             print (t1)
             print (t2)
