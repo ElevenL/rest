@@ -24,6 +24,15 @@ class okex():
     def get_ticker(self, symbol):
         return self.okcoinSpot.ticker(symbol)['ticker']
 
+    def get_balance(self):
+        self.balance = {}
+        info = self.okcoinSpot.userinfo()
+        for symbol in info['funds']['free']:
+            self.balance[symbol] = float(info['funds']['free'][symbol]) - float(info['funds']['freezed'][symbol])
+
+    def do_trade(self, ):
+        pass
+
     def good_trade(self, symbols, Threshold=1.02):
         '''
 
@@ -53,5 +62,5 @@ class okex():
 if __name__ == '__main__':
     api = okex()
     while(1):
-        api.good_trade(['btc', 'eth', 'mco'], Threshold=1.02)
+        api.good_trade(['btc', 'eth', 'mco'], Threshold=1.04)
         sleep(1)
