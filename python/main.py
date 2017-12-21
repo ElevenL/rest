@@ -45,7 +45,10 @@ class okex():
         t1 = self.get_ticker(symbol_1)
         t2 = self.get_ticker(symbol_2)
         t3 = self.get_ticker(symbol_3)
-
+        print ('=======================================')
+        print (float(t2['sell']))
+        print (float(t3['buy']))
+        print (float(t1['buy']))
         a1 = float(t2['sell']) / float(t3['buy']) / float(t1['buy'])
         a2 = float(t1['sell']) / float(t3['buy']) / float(t2['buy'])
 
