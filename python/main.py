@@ -39,8 +39,8 @@ class okex():
         for symbol in info['funds']['free']:
             self.balance[symbol] = float(info['funds']['free'][symbol]) - float(info['funds']['freezed'][symbol])
 
-    def do_trade(self, ):
-        pass
+    def trade(self, symbol, type, price, amount):
+        self.okcoinSpot.trade(symbol, type, price, amount)
 
     def good_trade(self, symbols, Threshold=1.02):
         '''
@@ -55,28 +55,23 @@ class okex():
         t2 = self.get_ticker(symbol_2)
         t3 = self.get_ticker(symbol_3)
         # print ('=======================================')
-        logging.debug('=======================================')
         # temp = (float(t2['sell']) / float(t3['buy']))
         a1 = (float(t2['sell']) / float(t3['buy'])) / float(t1['buy'])
         a2 = (float(t1['sell']) * float(t3['sell'])) / float(t2['buy'])
 
         if a1 > Threshold:
-            # print (a1)
-            # print ('[trader] ' + symbols[0] + '--->' + symbols[2] + '--->' + symbols[1] + '--->' + symbols[0])
-            # print (t1)
-            # print (t2)
-            # print (t3)
+            traderSymbol = [symbol_2, symbol_3, symbol_1]
+
+            logging.debug('=======================================')
             logging.debug(a1)
             logging.debug('[trader] ' + symbols[0] + '--->' + symbols[2] + '--->' + symbols[1] + '--->' + symbols[0])
             logging.debug(t1)
             logging.debug(t2)
             logging.debug(t3)
         elif a2 > Threshold:
-            # print (a2)
-            # print ('[trader] ' + symbols[0] + '--->' + symbols[1] + '--->' + symbols[2] + '--->' + symbols[0])
-            # print (t1)
-            # print (t2)
-            # print (t3)
+            traderSymbol = [symbol_1, symbol_3, symbol_2]
+
+            logging.debug('=======================================')
             logging.debug(a2)
             logging.debug('[trader] ' + symbols[0] + '--->' + symbols[1] + '--->' + symbols[2] + '--->' + symbols[0])
             logging.debug(t1)
