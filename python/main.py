@@ -71,5 +71,5 @@ class okex():
 if __name__ == '__main__':
     api = okex()
     while(1):
-        api.good_trade(['btc', 'eth', 'mco'], Threshold=1.04)
+        api.good_trade(['btc', 'eth', 'mco'], Threshold=1.02)
         sleep(1)
