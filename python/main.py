@@ -6,6 +6,15 @@
 from OkcoinSpotAPI import OKCoinSpot
 from OkcoinFutureAPI import OKCoinFuture
 from time import sleep
+import logging
+
+logging.basicConfig(level=logging.DEBUG,
+                format='%(asctime)s %(levelname)s %(message)s',
+                datefmt='%a, %d %b %Y %H:%M:%S',
+                filename='log',
+                filemode='w')
+
+
 
 class okex():
     def __init__(self):
@@ -46,6 +55,7 @@ class okex():
         t2 = self.get_ticker(symbol_2)
         t3 = self.get_ticker(symbol_3)
         print ('=======================================')
+        logging.debug('=======================================')
         # temp = (float(t2['sell']) / float(t3['buy']))
         a1 = (float(t2['sell']) / float(t3['buy'])) / float(t1['buy'])
         a2 = (float(t1['sell']) * float(t3['sell'])) / float(t2['buy'])
@@ -56,12 +66,22 @@ class okex():
             print (t1)
             print (t2)
             print (t3)
+            logging.debug(a1)
+            logging.debug('[trader] ' + symbols[0] + '--->' + symbols[2] + '--->' + symbols[1] + '--->' + symbols[0])
+            logging.debug(t1)
+            logging.debug(t2)
+            logging.debug(t3)
         elif a2 > Threshold:
             print (a2)
             print ('[trader] ' + symbols[0] + '--->' + symbols[1] + '--->' + symbols[2] + '--->' + symbols[0])
             print (t1)
             print (t2)
             print (t3)
+            logging.debug(a2)
+            logging.debug('[trader] ' + symbols[0] + '--->' + symbols[1] + '--->' + symbols[2] + '--->' + symbols[0])
+            logging.debug(t1)
+            logging.debug(t2)
+            logging.debug(t3)
         else:
             pass
 
