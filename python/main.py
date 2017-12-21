@@ -49,6 +49,7 @@ class okex():
         print (float(t2['sell']))
         print (float(t3['buy']))
         print (float(t1['buy']))
+        print (float(t2['sell']) / float(t3['buy']))
         a1 = (float(t2['sell']) / float(t3['buy'])) / float(t1['buy'])
         a2 = (float(t1['sell']) / float(t3['buy'])) / float(t2['buy'])
 
