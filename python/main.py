@@ -30,17 +30,50 @@ class okex():
         self.okcoinFuture = OKCoinFuture(okcoinRESTURL, apikey, secretkey)
 
 
-    def get_ticker(self, symbol):
+    def getTicker(self, symbol):
         return self.okcoinSpot.ticker(symbol)['ticker']
 
-    def get_balance(self):
+    def getBalance(self):
         self.balance = {}
         info = self.okcoinSpot.userinfo()
         for symbol in info['funds']['free']:
-            self.balance[symbol] = float(info['funds']['free'][symbol]) - float(info['funds']['freezed'][symbol])
+            self.balance[symbol] = float(info['funds']['borrow'][symbol]) - float(info['funds']['freezed'][symbol])
 
     def trade(self, symbol, type, price, amount):
-        self.okcoinSpot.trade(symbol, type, price, amount)
+        '''
+
+        :param symbol:
+        :param type:
+        :param price:
+        :param amount:
+        :return: order_id
+        '''
+        rsp = self.okcoinSpot.trade(symbol, type, price, amount)
+        if rsp['result']:
+            return rsp['order_id']
+        else:
+            return False
+
+    def getOrderInfo(self, symbol, order_id):
+        '''
+
+        :param symbol:
+        :param order_id:
+        :return: order_status
+        '''
+        rsp = self.okcoinSpot.orderinfo(symbol, order_id)
+        if rsp['result']:
+            return rsp['orders'][0]['status']
+        else:
+            return False
+
+    #TODO
+    def cancelOrder(self, symbol, order_id):
+        rsp = self.okcoinSpot.cancelOrder(symbol, order_id)
+        if rsp['result']:
+            pass
+        else:
+            return False
 
     def good_trade(self, symbols, Threshold=1.02):
         '''
@@ -51,15 +84,15 @@ class okex():
         symbol_1 = symbols[1] + '_' + symbols[0]
         symbol_2 = symbols[2] + '_' + symbols[0]
         symbol_3 = symbols[2] + '_' + symbols[1]
-        t1 = self.get_ticker(symbol_1)
-        t2 = self.get_ticker(symbol_2)
-        t3 = self.get_ticker(symbol_3)
+        t1 = self.getTicker(symbol_1)
+        t2 = self.getTicker(symbol_2)
+        t3 = self.getTicker(symbol_3)
         # print ('=======================================')
         # temp = (float(t2['sell']) / float(t3['buy']))
         a1 = (float(t2['sell']) / float(t3['buy'])) / float(t1['buy'])
         a2 = (float(t1['sell']) * float(t3['sell'])) / float(t2['buy'])
 
-        if a1 > Threshold:
+        if a1 < Threshold:
             traderSymbol = [symbol_2, symbol_3, symbol_1]
 
             logging.debug('=======================================')
@@ -68,7 +101,7 @@ class okex():
             logging.debug(t1)
             logging.debug(t2)
             logging.debug(t3)
-        elif a2 > Threshold:
+        elif a2 < Threshold:
             traderSymbol = [symbol_1, symbol_3, symbol_2]
 
             logging.debug('=======================================')
@@ -83,5 +116,7 @@ class okex():
 if __name__ == '__main__':
     api = okex()
     while(1):
-        api.good_trade(['btc', 'eth', 'mco'], Threshold=1.02)
+        api.good_trade(['btc', 'eth', 'mco'], Threshold=0.98)
+        api.good_trade(['btc', 'eth', 'eos'], Threshold=0.98)
+        api.good_trade(['btc', 'eth', 'xrp'], Threshold=0.98)
         sleep(1)
