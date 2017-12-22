@@ -8,6 +8,7 @@ from OkcoinFutureAPI import OKCoinFuture
 from time import sleep
 import logging
 
+#CRITICAL > ERROR > WARNING > INFO > DEBUG > NOTSET
 logging.basicConfig(level=logging.DEBUG,
                 format='%(asctime)s %(levelname)s %(message)s',
                 datefmt='%a, %d %b %Y %H:%M:%S',
