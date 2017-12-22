@@ -35,6 +35,10 @@ class okex():
         return self.okcoinSpot.ticker(symbol)['ticker']
 
     def getBalance(self):
+        '''
+
+        :return: 
+        '''
         self.balance = {}
         info = self.okcoinSpot.userinfo()
         for symbol in info['funds']['free']:
@@ -60,7 +64,7 @@ class okex():
 
         :param symbol:
         :param order_id:
-        :return: order_status
+        :return: order_status: -1:已撤销  0:未成交  1:部分成交  2:完全成交 3:撤单处理中
         '''
         rsp = self.okcoinSpot.orderinfo(symbol, order_id)
         if rsp['result']:
@@ -68,13 +72,15 @@ class okex():
         else:
             return False
 
-    #TODO
     def cancelOrder(self, symbol, order_id):
+        '''
+
+        :param symbol:
+        :param order_id:
+        :return: True or False
+        '''
         rsp = self.okcoinSpot.cancelOrder(symbol, order_id)
-        if rsp['result']:
-            pass
-        else:
-            return False
+        return rsp['result']
 
     def good_trade(self, symbols, Threshold=1.02):
         '''
