@@ -41,7 +41,7 @@ class okex():
         '''
         self.balance = {}
         info = self.okcoinSpot.userinfo()
-        for symbol in info['funds']['free']:
+        for symbol in info['funds']['borrow'].keys():
             self.balance[symbol] = float(info['funds']['borrow'][symbol]) - float(info['funds']['freezed'][symbol])
 
     def trade(self, symbol, type, price, amount):
