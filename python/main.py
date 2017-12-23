@@ -7,6 +7,7 @@ from OkcoinSpotAPI import OKCoinSpot
 from OkcoinFutureAPI import OKCoinFuture
 from time import sleep
 import logging
+import json
 
 #CRITICAL > ERROR > WARNING > INFO > DEBUG > NOTSET
 logging.basicConfig(level=logging.DEBUG,
@@ -40,9 +41,9 @@ class okex():
         :return: 
         '''
         self.balance = {}
-        info = self.okcoinSpot.userinfo()
-        for symbol in info['funds']['borrow'].keys():
-            self.balance[symbol] = float(info['funds']['borrow'][symbol]) - float(info['funds']['freezed'][symbol])
+        info = json.loads(self.okcoinSpot.userinfo())
+        for symbol in info['info']['funds']['free'].keys():
+            self.balance[symbol] = float(info['info']['funds']['free'][symbol])
 
     def trade(self, symbol, type, price, amount):
         '''
@@ -53,7 +54,10 @@ class okex():
         :param amount:
         :return: order_id
         '''
-        rsp = self.okcoinSpot.trade(symbol, type, price, amount)
+        rsp = json.loads(self.okcoinSpot.trade(symbol, type, price, amount))
+        if 'error_code' in rsp:
+            logging.info('[trade error]' + str(rsp['error_code']))
+            return False
         if rsp['result']:
             return rsp['order_id']
         else:
@@ -66,11 +70,20 @@ class okex():
         :param order_id:
         :return: order_status: -1:已撤销  0:未成交  1:部分成交  2:完全成交 3:撤单处理中
         '''
-        rsp = self.okcoinSpot.orderinfo(symbol, order_id)
+        rsp = json.loads(self.okcoinSpot.orderinfo(symbol, order_id))
         if rsp['result']:
-            return rsp['orders'][0]['status']
+            return int(rsp['orders'][0]['status'])
         else:
             return False
+
+    def toBtc(self):
+        # self.getBalance()
+        for symbol in self.balance.keys():
+            if symbol != 'usdt' and symbol != 'btc' and self.balance[symbol] != 0:
+                print(symbol)
+                if self.balance[symbol] != 0:
+                    tradeSymbol = symbol + '_usdt'
+                    self.trade(tradeSymbol, 'sell_market', '', self.balance[symbol])
 
     def cancelOrder(self, symbol, order_id):
         '''
@@ -79,7 +92,7 @@ class okex():
         :param order_id:
         :return: True or False
         '''
-        rsp = self.okcoinSpot.cancelOrder(symbol, order_id)
+        rsp = json.loads(self.okcoinSpot.cancelOrder(symbol, order_id))
         return rsp['result']
 
     def good_trade(self, symbols, Threshold=1.02):
@@ -147,6 +160,7 @@ class okex():
             #step1
             logging.info('[step1]')
             self.getBalance()
+            self.toBtc()
             logging.info('[Balance]')
             logging.info(self.balance)
             amount1 = round((initAmount * 0.999) / float(t2['sell']), 8)
@@ -159,9 +173,11 @@ class okex():
                 logging.info('[orderId]' + str(orderId))
                 status = self.getOrderInfo(symbol_2, orderId)
                 if status != 2:
+                    print(status)
                     sleep(0.5)
                     status = self.getOrderInfo(symbol_2, orderId)
                     if status != 2:
+                        print(status)
                         self.cancelOrder(symbol_2, orderId)
                         logging.info('[cancelOrder!]')
                         return
@@ -333,7 +349,9 @@ class okex():
 if __name__ == '__main__':
     api = okex()
     while(1):
-        api.tradePolicy(['btc', 'eth', 'mco'], initAmount=0.005, Threshold=0.98)
-        api.tradePolicy(['btc', 'eth', 'eos'], initAmount=0.005, Threshold=0.98)
-        api.tradePolicy(['btc', 'eth', 'xrp'], initAmount=0.005, Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'mco'], initAmount=0.002, Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'eos'], initAmount=0.002, Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'xrp'], initAmount=0.002, Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'nuls'], initAmount=0.002, Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'san'], initAmount=0.002, Threshold=0.98)
         sleep(1)
