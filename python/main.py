@@ -120,10 +120,155 @@ class okex():
         else:
             pass
 
+    def tradePolicy(self, symbols, initAmount=0.005, Threshold=1.02):
+        '''
+
+        :param symbols: such as [btc, eth, mco]
+        :return:
+        '''
+        retry = 3
+        symbol_1 = symbols[1] + '_' + symbols[0]
+        symbol_2 = symbols[2] + '_' + symbols[0]
+        symbol_3 = symbols[2] + '_' + symbols[1]
+        t1 = self.getTicker(symbol_1)
+        t2 = self.getTicker(symbol_2)
+        t3 = self.getTicker(symbol_3)
+        a1 = (float(t2['sell']) / float(t3['buy'])) / float(t1['buy'])
+        a2 = (float(t1['sell']) * float(t3['sell'])) / float(t2['buy'])
+        # logging.debug(t1)
+        if a1 < Threshold:
+            logging.debug(a1)
+            traderSymbol = [symbol_2, symbol_3, symbol_1]
+            logging.debug('[trader] ' + symbols[0] + '--->' + symbols[2] + '--->' + symbols[1] + '--->' + symbols[0])
+            logging.debug(t1)
+            logging.debug(t2)
+            logging.debug(t3)
+            #step1
+            amount1 = round((initAmount * 0.999) / float(t2['sell']), 8)
+            for i in range(retry):
+                orderId = self.trade(symbol_2, 'buy', float(t2['sell']), amount1)
+                if orderId:
+                    break
+            if orderId:
+                status = self.getOrderInfo(symbol_2, orderId)
+                if status != 2:
+                    sleep(0.5)
+                    status = self.getOrderInfo(symbol_2, orderId)
+                    if status != 2:
+                        self.cancelOrder(symbol_2, orderId)
+                        logging.info('cancelOrder!')
+                        return
+            else:
+                return
+
+            #step2
+            self.getBalance()
+            amount2 = round(self.balance[symbols[2]] * 0.999)
+            for i in range(retry):
+                orderId = self.trade(symbol_3, 'sell', float(t3['buy']), amount2)
+                if orderId:
+                    break
+            if orderId:
+                status = self.getOrderInfo(symbol_3, orderId)
+                if status != 2:
+                    sleep(0.5)
+                    status = self.getOrderInfo(symbol_3, orderId)
+                    if status != 2:
+                        self.cancelOrder(symbol_3, orderId)
+                        logging.info('cancelOrder!')
+                        return
+            else:
+                return
+
+            #step3
+            self.getBalance()
+            amount3 = round(self.balance[symbols[1]] * 0.999)
+            for i in range(retry):
+                orderId = self.trade(symbol_1, 'sell', float(t1['buy']), amount3)
+                if orderId:
+                    break
+            if orderId:
+                status = self.getOrderInfo(symbol_1, orderId)
+                if status != 2:
+                    sleep(0.5)
+                    status = self.getOrderInfo(symbol_1, orderId)
+                    if status != 2:
+                        self.cancelOrder(symbol_1, orderId)
+                        logging.info('cancelOrder!')
+                        return
+            else:
+                return
+
+        elif a2 < Threshold:
+            logging.debug(a2)
+            traderSymbol = [symbol_1, symbol_3, symbol_2]
+            logging.debug('[trader] ' + symbols[0] + '--->' + symbols[1] + '--->' + symbols[2] + '--->' + symbols[0])
+            logging.debug(t1)
+            logging.debug(t2)
+            logging.debug(t3)
+            # step1
+            amount1 = round((initAmount * 0.999) / float(t1['sell']), 8)
+            for i in range(retry):
+                orderId = self.trade(symbol_1, 'buy', float(t1['sell']), amount1)
+                if orderId:
+                    break
+            if orderId:
+                status = self.getOrderInfo(symbol_1, orderId)
+                if status != 2:
+                    sleep(0.5)
+                    status = self.getOrderInfo(symbol_1, orderId)
+                    if status != 2:
+                        self.cancelOrder(symbol_1, orderId)
+                        logging.info('cancelOrder!')
+                        return
+            else:
+                return
+
+            # step2
+            self.getBalance()
+            amount2 = round(self.balance[symbols[1]] * 0.999)
+            for i in range(retry):
+                orderId = self.trade(symbol_3, 'buy', float(t3['sell']), amount2)
+                if orderId:
+                    break
+            if orderId:
+                status = self.getOrderInfo(symbol_3, orderId)
+                if status != 2:
+                    sleep(0.5)
+                    status = self.getOrderInfo(symbol_3, orderId)
+                    if status != 2:
+                        self.cancelOrder(symbol_3, orderId)
+                        logging.info('cancelOrder!')
+                        return
+            else:
+                return
+
+            # step3
+            self.getBalance()
+            amount3 = round(self.balance[symbols[2]] * 0.999)
+            for i in range(retry):
+                orderId = self.trade(symbol_2, 'sell', float(t2['buy']), amount3)
+                if orderId:
+                    break
+            if orderId:
+                status = self.getOrderInfo(symbol_2, orderId)
+                if status != 2:
+                    sleep(0.5)
+                    status = self.getOrderInfo(symbol_2, orderId)
+                    if status != 2:
+                        self.cancelOrder(symbol_2, orderId)
+                        logging.info('cancelOrder!')
+                        return
+            else:
+                return
+        else:
+            pass
+
+
 if __name__ == '__main__':
     api = okex()
     while(1):
-        api.good_trade(['btc', 'eth', 'mco'], Threshold=0.98)
-        api.good_trade(['btc', 'eth', 'eos'], Threshold=0.98)
-        api.good_trade(['btc', 'eth', 'xrp'], Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'mco'], initAmount=0.005, Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'eos'], initAmount=0.005, Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'xrp'], initAmount=0.005, Threshold=0.98)
         sleep(1)
