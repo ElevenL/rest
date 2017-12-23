@@ -137,6 +137,7 @@ class okex():
         a2 = (float(t1['sell']) * float(t3['sell'])) / float(t2['buy'])
         # logging.debug(t1)
         if a1 < Threshold:
+            logging.info('=========================================================')
             logging.debug(a1)
             traderSymbol = [symbol_2, symbol_3, symbol_1]
             logging.debug('[trader] ' + symbols[0] + '--->' + symbols[2] + '--->' + symbols[1] + '--->' + symbols[0])
@@ -144,31 +145,47 @@ class okex():
             logging.debug(t2)
             logging.debug(t3)
             #step1
+            logging.info('[step1]')
+            self.getBalance()
+            logging.info('[Balance]')
+            logging.info(self.balance)
             amount1 = round((initAmount * 0.999) / float(t2['sell']), 8)
             for i in range(retry):
+                logging.info('[order]' + symbol_2 + '|buy|' + str(float(t2['sell'])) + '|' + str(amount1))
                 orderId = self.trade(symbol_2, 'buy', float(t2['sell']), amount1)
                 if orderId:
                     break
             if orderId:
+                logging.info('[orderId]' + str(orderId))
                 status = self.getOrderInfo(symbol_2, orderId)
                 if status != 2:
                     sleep(0.5)
                     status = self.getOrderInfo(symbol_2, orderId)
                     if status != 2:
                         self.cancelOrder(symbol_2, orderId)
-                        logging.info('cancelOrder!')
+                        logging.info('[cancelOrder!]')
                         return
+                    else:
+                        logging.info('[order succssed!]')
+                else:
+                    logging.info('[order succssed!]')
             else:
+                logging.info('[order failed!]')
                 return
 
             #step2
+            logging.info('[step2]')
             self.getBalance()
+            logging.info('[Balance]')
+            logging.info(self.balance)
             amount2 = round(self.balance[symbols[2]] * 0.999)
             for i in range(retry):
+                logging.info('[order]' + symbol_3 + '|sell|' + str(float(t3['buy'])) + '|' + str(amount2))
                 orderId = self.trade(symbol_3, 'sell', float(t3['buy']), amount2)
                 if orderId:
                     break
             if orderId:
+                logging.info('[orderId]' + str(orderId))
                 status = self.getOrderInfo(symbol_3, orderId)
                 if status != 2:
                     sleep(0.5)
@@ -177,17 +194,27 @@ class okex():
                         self.cancelOrder(symbol_3, orderId)
                         logging.info('cancelOrder!')
                         return
+                    else:
+                        logging.info('[order succssed!]')
+                else:
+                    logging.info('[order succssed!]')
             else:
+                logging.info('[order failed!]')
                 return
 
             #step3
+            logging.info('[step3]')
             self.getBalance()
+            logging.info('[Balance]')
+            logging.info(self.balance)
             amount3 = round(self.balance[symbols[1]] * 0.999)
             for i in range(retry):
+                logging.info('[order]' + symbol_1 + '|sell|' + str(float(t1['buy'])) + '|' + str(amount3))
                 orderId = self.trade(symbol_1, 'sell', float(t1['buy']), amount3)
                 if orderId:
                     break
             if orderId:
+                logging.info('[orderId]' + str(orderId))
                 status = self.getOrderInfo(symbol_1, orderId)
                 if status != 2:
                     sleep(0.5)
@@ -196,23 +223,36 @@ class okex():
                         self.cancelOrder(symbol_1, orderId)
                         logging.info('cancelOrder!')
                         return
+                    else:
+                        logging.info('[order succssed!]')
+                else:
+                    logging.info('[order succssed!]')
             else:
+                logging.info('[order failed!]')
                 return
 
         elif a2 < Threshold:
+            logging.info('=========================================================')
             logging.debug(a2)
             traderSymbol = [symbol_1, symbol_3, symbol_2]
             logging.debug('[trader] ' + symbols[0] + '--->' + symbols[1] + '--->' + symbols[2] + '--->' + symbols[0])
             logging.debug(t1)
             logging.debug(t2)
             logging.debug(t3)
+
             # step1
+            logging.info('[step1]')
+            self.getBalance()
+            logging.info('[Balance]')
+            logging.info(self.balance)
             amount1 = round((initAmount * 0.999) / float(t1['sell']), 8)
             for i in range(retry):
+                logging.info('[order]' + symbol_1 + '|buy|' + str(float(t1['sell'])) + '|' + str(amount1))
                 orderId = self.trade(symbol_1, 'buy', float(t1['sell']), amount1)
                 if orderId:
                     break
             if orderId:
+                logging.info('[orderId]' + str(orderId))
                 status = self.getOrderInfo(symbol_1, orderId)
                 if status != 2:
                     sleep(0.5)
@@ -221,17 +261,27 @@ class okex():
                         self.cancelOrder(symbol_1, orderId)
                         logging.info('cancelOrder!')
                         return
+                    else:
+                        logging.info('[order succssed!]')
+                else:
+                    logging.info('[order succssed!]')
             else:
+                logging.info('[order failed!]')
                 return
 
             # step2
+            logging.info('[step2]')
             self.getBalance()
+            logging.info('[Balance]')
+            logging.info(self.balance)
             amount2 = round(self.balance[symbols[1]] * 0.999)
             for i in range(retry):
+                logging.info('[order]' + symbol_3 + '|buy|' + str(float(t3['sell'])) + '|' + str(amount2))
                 orderId = self.trade(symbol_3, 'buy', float(t3['sell']), amount2)
                 if orderId:
                     break
             if orderId:
+                logging.info('[orderId]' + str(orderId))
                 status = self.getOrderInfo(symbol_3, orderId)
                 if status != 2:
                     sleep(0.5)
@@ -240,17 +290,27 @@ class okex():
                         self.cancelOrder(symbol_3, orderId)
                         logging.info('cancelOrder!')
                         return
+                    else:
+                        logging.info('[order succssed!]')
+                else:
+                    logging.info('[order succssed!]')
             else:
+                logging.info('[order failed!]')
                 return
 
             # step3
+            logging.info('[step3]')
             self.getBalance()
+            logging.info('[Balance]')
+            logging.info(self.balance)
             amount3 = round(self.balance[symbols[2]] * 0.999)
             for i in range(retry):
+                logging.info('[order]' + symbol_2 + '|sell|' + str(float(t2['buy'])) + '|' + str(amount3))
                 orderId = self.trade(symbol_2, 'sell', float(t2['buy']), amount3)
                 if orderId:
                     break
             if orderId:
+                logging.info('[orderId]' + str(orderId))
                 status = self.getOrderInfo(symbol_2, orderId)
                 if status != 2:
                     sleep(0.5)
@@ -259,7 +319,12 @@ class okex():
                         self.cancelOrder(symbol_2, orderId)
                         logging.info('cancelOrder!')
                         return
+                    else:
+                        logging.info('[order succssed!]')
+                else:
+                    logging.info('[order succssed!]')
             else:
+                logging.info('[order failed!]')
                 return
         else:
             pass
