@@ -178,7 +178,7 @@ class okex():
             self.getBalance()
             logging.info('[Balance]')
             logging.info(self.balance)
-            amount2 = round(self.balance[symbols[2]] * 0.999)
+            amount2 = self.balance[symbols[2]]
             for i in range(retry):
                 logging.info('[order]' + symbol_3 + '|sell|' + str(float(t3['buy'])) + '|' + str(amount2))
                 orderId = self.trade(symbol_3, 'sell', float(t3['buy']), amount2)
@@ -207,7 +207,7 @@ class okex():
             self.getBalance()
             logging.info('[Balance]')
             logging.info(self.balance)
-            amount3 = round(self.balance[symbols[1]] * 0.999)
+            amount3 = self.balance[symbols[1]]
             for i in range(retry):
                 logging.info('[order]' + symbol_1 + '|sell|' + str(float(t1['buy'])) + '|' + str(amount3))
                 orderId = self.trade(symbol_1, 'sell', float(t1['buy']), amount3)
@@ -274,7 +274,7 @@ class okex():
             self.getBalance()
             logging.info('[Balance]')
             logging.info(self.balance)
-            amount2 = round(self.balance[symbols[1]] * 0.999)
+            amount2 = round((self.balance[symbols[1]] * 0.999) / float(t3['sell']), 8)
             for i in range(retry):
                 logging.info('[order]' + symbol_3 + '|buy|' + str(float(t3['sell'])) + '|' + str(amount2))
                 orderId = self.trade(symbol_3, 'buy', float(t3['sell']), amount2)
@@ -303,7 +303,7 @@ class okex():
             self.getBalance()
             logging.info('[Balance]')
             logging.info(self.balance)
-            amount3 = round(self.balance[symbols[2]] * 0.999)
+            amount3 = self.balance[symbols[2]]
             for i in range(retry):
                 logging.info('[order]' + symbol_2 + '|sell|' + str(float(t2['buy'])) + '|' + str(amount3))
                 orderId = self.trade(symbol_2, 'sell', float(t2['buy']), amount3)
