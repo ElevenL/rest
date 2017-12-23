@@ -259,6 +259,7 @@ class okex():
             # step1
             logging.info('[step1]')
             self.getBalance()
+            self.toBtc()
             logging.info('[Balance]')
             logging.info(self.balance)
             amount1 = round((initAmount * 0.999) / float(t1['sell']), 8)
