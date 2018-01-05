@@ -16,6 +16,15 @@ logging.basicConfig(level=logging.DEBUG,
                 filename='log',
                 filemode='a')
 
+amount = {
+    'eth_btc': 0.015,
+    'eos_btc': 1.8,
+    'eos_eth': 1.8,
+    'etc_btc': 0.5,
+    'etc_eth': 0.5,
+    'mco_btc': 0.8,
+    'mco_eth': 0.8,
+}
 
 
 class okex():
@@ -34,6 +43,11 @@ class okex():
 
     def getTicker(self, symbol):
         return self.okcoinSpot.ticker(symbol)['ticker']
+
+    def getDepth(self, symbol):
+        depth = self.okcoinSpot.depth(symbol)
+        return {'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
+                'buy':{'price':depth['bids'][-1][0], 'amount':depth['bids'][-1][1]}}
 
     def getBalance(self):
         '''
@@ -71,6 +85,9 @@ class okex():
         :return: order_status: -1:已撤销  0:未成交  1:部分成交  2:完全成交 3:撤单处理中
         '''
         rsp = json.loads(self.okcoinSpot.orderinfo(symbol, order_id))
+        if 'error_code' in rsp:
+            logging.info('[getOrderInfo error]' + str(rsp['error_code']))
+            return False
         if rsp['result']:
             return int(rsp['orders'][0]['status'])
         else:
@@ -80,9 +97,9 @@ class okex():
         # self.getBalance()
         for symbol in self.balance.keys():
             if symbol != 'usdt' and symbol != 'btc' and self.balance[symbol] != 0:
-                print(symbol)
+                # print(symbol)
                 if self.balance[symbol] != 0:
-                    tradeSymbol = symbol + '_usdt'
+                    tradeSymbol = symbol + '_btc'
                     self.trade(tradeSymbol, 'sell_market', '', self.balance[symbol])
 
     def cancelOrder(self, symbol, order_id):
@@ -93,6 +110,9 @@ class okex():
         :return: True or False
         '''
         rsp = json.loads(self.okcoinSpot.cancelOrder(symbol, order_id))
+        if 'error_code' in rsp:
+            logging.info('[cancelOrder error]' + str(rsp['error_code']))
+            return False
         return rsp['result']
 
     def good_trade(self, symbols, Threshold=1.02):
@@ -143,13 +163,16 @@ class okex():
         symbol_1 = symbols[1] + '_' + symbols[0]
         symbol_2 = symbols[2] + '_' + symbols[0]
         symbol_3 = symbols[2] + '_' + symbols[1]
-        t1 = self.getTicker(symbol_1)
-        t2 = self.getTicker(symbol_2)
-        t3 = self.getTicker(symbol_3)
-        a1 = (float(t2['sell']) / float(t3['buy'])) / float(t1['buy'])
-        a2 = (float(t1['sell']) * float(t3['sell'])) / float(t2['buy'])
+        t1 = self.getDepth(symbol_1)
+        t2 = self.getDepth(symbol_2)
+        t3 = self.getDepth(symbol_3)
+        a1 = (float(t2['sell']['price']) / float(t3['buy']['price'])) / float(t1['buy']['price'])
+        a2 = (float(t1['sell']['price']) * float(t3['sell']['price'])) / float(t2['buy']['price'])
         # logging.debug(t1)
         if a1 < Threshold:
+            if float(t2['sell']['amount']) < amount[symbol_2] or float(t3['buy']['amount']) < amount[symbol_3] or\
+                float(t1['buy']['amount']) < amount[symbol_1]:
+                return
             logging.info('=========================================================')
             logging.debug(a1)
             traderSymbol = [symbol_2, symbol_3, symbol_1]
@@ -163,10 +186,10 @@ class okex():
             self.toBtc()
             logging.info('[Balance]')
             logging.info(self.balance)
-            amount1 = round((initAmount * 0.999) / float(t2['sell']), 8)
+            amount1 = round((initAmount * 0.999) / float(t2['sell']['price']), 8)
             for i in range(retry):
-                logging.info('[order]' + symbol_2 + '|buy|' + str(float(t2['sell'])) + '|' + str(amount1))
-                orderId = self.trade(symbol_2, 'buy', float(t2['sell']), amount1)
+                logging.info('[order]' + symbol_2 + '|buy|' + str(float(t2['sell']['price'])) + '|' + str(amount1))
+                orderId = self.trade(symbol_2, 'buy', float(t2['sell']['price']), amount1)
                 if orderId:
                     break
             if orderId:
@@ -196,8 +219,8 @@ class okex():
             logging.info(self.balance)
             amount2 = self.balance[symbols[2]]
             for i in range(retry):
-                logging.info('[order]' + symbol_3 + '|sell|' + str(float(t3['buy'])) + '|' + str(amount2))
-                orderId = self.trade(symbol_3, 'sell', float(t3['buy']), amount2)
+                logging.info('[order]' + symbol_3 + '|sell|' + str(float(t3['buy']['price'])) + '|' + str(amount2))
+                orderId = self.trade(symbol_3, 'sell', float(t3['buy']['price']), amount2)
                 if orderId:
                     break
             if orderId:
@@ -225,8 +248,8 @@ class okex():
             logging.info(self.balance)
             amount3 = self.balance[symbols[1]]
             for i in range(retry):
-                logging.info('[order]' + symbol_1 + '|sell|' + str(float(t1['buy'])) + '|' + str(amount3))
-                orderId = self.trade(symbol_1, 'sell', float(t1['buy']), amount3)
+                logging.info('[order]' + symbol_1 + '|sell|' + str(float(t1['buy']['price'])) + '|' + str(amount3))
+                orderId = self.trade(symbol_1, 'sell', float(t1['buy']['price']), amount3)
                 if orderId:
                     break
             if orderId:
@@ -248,6 +271,9 @@ class okex():
                 return
 
         elif a2 < Threshold:
+            if float(t2['buy']['amount']) < amount[symbol_2] or float(t3['sell']['amount']) < amount[symbol_3] or\
+                float(t1['sell']['amount']) < amount[symbol_1]:
+                return
             logging.info('=========================================================')
             logging.debug(a2)
             traderSymbol = [symbol_1, symbol_3, symbol_2]
@@ -262,10 +288,10 @@ class okex():
             self.toBtc()
             logging.info('[Balance]')
             logging.info(self.balance)
-            amount1 = round((initAmount * 0.999) / float(t1['sell']), 8)
+            amount1 = round((initAmount * 0.999) / float(t1['sell']['price']), 8)
             for i in range(retry):
-                logging.info('[order]' + symbol_1 + '|buy|' + str(float(t1['sell'])) + '|' + str(amount1))
-                orderId = self.trade(symbol_1, 'buy', float(t1['sell']), amount1)
+                logging.info('[order]' + symbol_1 + '|buy|' + str(float(t1['sell']['price'])) + '|' + str(amount1))
+                orderId = self.trade(symbol_1, 'buy', float(t1['sell']['price']), amount1)
                 if orderId:
                     break
             if orderId:
@@ -291,10 +317,10 @@ class okex():
             self.getBalance()
             logging.info('[Balance]')
             logging.info(self.balance)
-            amount2 = round((self.balance[symbols[1]] * 0.999) / float(t3['sell']), 8)
+            amount2 = round((self.balance[symbols[1]] * 0.999) / float(t3['sell']['price']), 8)
             for i in range(retry):
-                logging.info('[order]' + symbol_3 + '|buy|' + str(float(t3['sell'])) + '|' + str(amount2))
-                orderId = self.trade(symbol_3, 'buy', float(t3['sell']), amount2)
+                logging.info('[order]' + symbol_3 + '|buy|' + str(float(t3['sell']['price'])) + '|' + str(amount2))
+                orderId = self.trade(symbol_3, 'buy', float(t3['sell']['price']), amount2)
                 if orderId:
                     break
             if orderId:
@@ -322,8 +348,8 @@ class okex():
             logging.info(self.balance)
             amount3 = self.balance[symbols[2]]
             for i in range(retry):
-                logging.info('[order]' + symbol_2 + '|sell|' + str(float(t2['buy'])) + '|' + str(amount3))
-                orderId = self.trade(symbol_2, 'sell', float(t2['buy']), amount3)
+                logging.info('[order]' + symbol_2 + '|sell|' + str(float(t2['buy']['price'])) + '|' + str(amount3))
+                orderId = self.trade(symbol_2, 'sell', float(t2['buy']['price']), amount3)
                 if orderId:
                     break
             if orderId:
@@ -350,9 +376,6 @@ class okex():
 if __name__ == '__main__':
     api = okex()
     while(1):
-        api.tradePolicy(['btc', 'eth', 'mco'], initAmount=0.002, Threshold=0.98)
-        api.tradePolicy(['btc', 'eth', 'eos'], initAmount=0.002, Threshold=0.98)
-        api.tradePolicy(['btc', 'eth', 'xrp'], initAmount=0.002, Threshold=0.98)
-        api.tradePolicy(['btc', 'eth', 'nuls'], initAmount=0.002, Threshold=0.98)
-        api.tradePolicy(['btc', 'eth', 'san'], initAmount=0.002, Threshold=0.98)
-        sleep(1)
+        api.tradePolicy(['btc', 'eth', 'mco'], initAmount=0.0008, Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'eos'], initAmount=0.0008, Threshold=0.98)
+        api.tradePolicy(['btc', 'eth', 'etc'], initAmount=0.0008, Threshold=0.98)
