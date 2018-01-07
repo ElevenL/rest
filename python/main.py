@@ -550,4 +550,4 @@ if __name__ == '__main__':
     api = okex()
     symbols = ['eos', 'ltc']
     while(1):
-        api.policy(symbols)
+        api.policy(SYMBOL)
