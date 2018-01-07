@@ -539,7 +539,7 @@ class okex():
         coins = self.getCoinList(allsymbol)
         tradesymbol = self.getTradeSymbol(coins)
         for symbols in tradesymbol:
-            print(symbols)
+            # print(symbols)
             self.toBtc()
             amount = self.getTradeAmount(symbols)
             if amount > 0.0001:
