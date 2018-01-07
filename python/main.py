@@ -21,7 +21,7 @@ SYMBOL = ['ace', 'act', 'amm', 'ark', 'ast', 'avt', 'bnt', 'btm', 'cmt', 'ctr',
           'cvc', 'dash', 'dat', 'dgb', 'dgd', 'dnt', 'dpy', 'edo', 'elf', 'eng',
           'eos', 'etc', 'evx', 'fun', 'gas', 'gnt', 'gnx', 'hsr', 'icn', 'icx',
           'iota', 'itc', 'kcash', 'knc', 'link', 'lrc', 'ltc', 'mana', 'mco',
-          'mda', 'mdt', 'mth', 'mtl', 'nas', 'neo', 'nuls', 'oax', 'omg', 'pay',
+          'mda', 'mdt', 'mth', 'nas', 'neo', 'nuls', 'oax', 'omg', 'pay',
           'ppt', 'pro', 'qtum', 'qvt', 'rcn', 'rdn', 'read', 'req', 'rnt', 'salt',
           'san', 'sngls', 'snm', 'snt', 'ssc', 'storj', 'sub', 'swftc',
           'tnb', 'trx', 'ugc', 'ukg', 'vee', 'wrc', 'wtc', 'xem', 'xlm', 'xmr',
@@ -110,9 +110,9 @@ class okex():
             return False
 
     def toBtc(self):
-        # self.getBalance()
+        self.getBalance()
         for symbol in self.balance.keys():
-            if symbol != 'usdt' and symbol != 'btc' and self.balance[symbol] != 0:
+            if symbol != 'usdt' and symbol != 'btc' and symbol != 'mtl' and self.balance[symbol] != 0:
                 # print(symbol)
                 if self.balance[symbol] != 0:
                     tradeSymbol = symbol + '_btc'
@@ -411,9 +411,9 @@ class okex():
             self.getDepth('eth_btc')
             # print(api.depth[symbol])
         ss = (self.depth[symbols[1]]['buy']['price'] * self.depth[symbols[3]]['buy']['price']) / (self.depth[symbols[0]]['sell']['price'] * self.depth[symbols[2]]['sell']['price'])
-        print(ss)
-        if ss > 1.02:
+        if ss > 1.01:
             logging.debug('profit: %f' % ss)
+            logging.debug(symbols)
             logging.debug(self.depth[symbols[0]])
             logging.debug(self.depth[symbols[1]])
             logging.debug(self.depth[symbols[2]])
@@ -424,7 +424,7 @@ class okex():
             amount.append(self.depth[symbols[2]]['sell']['price'] * self.depth[symbols[2]]['sell']['amount'] * self.depth['eth_btc']['buy']['amount'])
             amount.append(self.depth[symbols[3]]['buy']['price'] * self.depth[symbols[3]]['buy']['amount'])
             amount.sort()
-            print(amount)
+            logging.debug('amount: %f' % amount[0])
             return amount[0]
         else:
             return 0
@@ -463,8 +463,8 @@ class okex():
         logging.info(self.balance)
         amount2 = self.balance[symbols[1].split('_')[0]]
         logging.info(
-            '[order]' + symbols[0] + '|sell|' + str(self.depth[symbols[1]]['buy']['price']) + '|' + str(amount2))
-        orderId = self.trade(symbols[0], 'sell', self.depth[symbols[1]]['buy']['price'], amount2)
+            '[order]' + symbols[1] + '|sell|' + str(self.depth[symbols[1]]['buy']['price']) + '|' + str(amount2))
+        orderId = self.trade(symbols[1], 'sell', self.depth[symbols[1]]['buy']['price'], amount2)
         if orderId:
             logging.info('[orderId]' + str(orderId))
             status = self.getOrderInfo(symbols[1], orderId)
@@ -487,18 +487,18 @@ class okex():
         self.getBalance()
         logging.info('[Balance]')
         logging.info(self.balance)
-        amount2 = self.balance[symbols[1].split('_')[0]]
+        amount3 = round((self.balance[symbols[2].split('_')[1]] / self.depth[symbols[2]]['sell']['price']) * 0.999, 8)
         logging.info(
-            '[order]' + symbols[0] + '|sell|' + str(self.depth[symbols[1]]['buy']['price']) + '|' + str(amount2))
-        orderId = self.trade(symbols[0], 'sell', self.depth[symbols[1]]['buy']['price'], amount2)
+            '[order]' + symbols[2] + '|buy|' + str(self.depth[symbols[2]]['sell']['price']) + '|' + str(amount3))
+        orderId = self.trade(symbols[2], 'buy', self.depth[symbols[2]]['sell']['price'], amount3)
         if orderId:
             logging.info('[orderId]' + str(orderId))
-            status = self.getOrderInfo(symbols[1], orderId)
+            status = self.getOrderInfo(symbols[2], orderId)
             if status != 2:
                 sleep(0.5)
-                status = self.getOrderInfo(symbols[1], orderId)
+                status = self.getOrderInfo(symbols[2], orderId)
                 if status != 2:
-                    self.cancelOrder(symbols[1], orderId)
+                    self.cancelOrder(symbols[2], orderId)
                     logging.info('cancelOrder!')
                     return
                 else:
@@ -509,20 +509,45 @@ class okex():
             logging.info('[order failed!]')
             return
 
-if __name__ == '__main__':
-    api = okex()
-    print(time())
-    # while(1):
-    #     api.tradePolicy(['btc', 'eth', 'mco'], initAmount=0.0008, Threshold=0.98)
-    #     api.tradePolicy(['btc', 'eth', 'eos'], initAmount=0.0008, Threshold=0.98)
-    #     api.tradePolicy(['btc', 'eth', 'etc'], initAmount=0.0008, Threshold=0.98)
-    #     break
-    symbols = ['eos', 'ltc', 'mco']
-    while(1):
-        # coins = api.getCoinList(symbols)
-        coins = api.getCoinList(SYMBOL)
-        tradesymbol = api.getTradeSymbol(coins)
-        print(tradesymbol)
+        logging.debug('step4')
+        self.getBalance()
+        logging.info('[Balance]')
+        logging.info(self.balance)
+        amount4 = self.balance[symbols[3].split('_')[0]]
+        logging.info(
+            '[order]' + symbols[3] + '|sell|' + str(self.depth[symbols[3]]['buy']['price']) + '|' + str(amount4))
+        orderId = self.trade(symbols[3], 'sell', self.depth[symbols[3]]['buy']['price'], amount4)
+        if orderId:
+            logging.info('[orderId]' + str(orderId))
+            status = self.getOrderInfo(symbols[3], orderId)
+            if status != 2:
+                sleep(0.5)
+                status = self.getOrderInfo(symbols[3], orderId)
+                if status != 2:
+                    self.cancelOrder(symbols[3], orderId)
+                    logging.info('cancelOrder!')
+                    return
+                else:
+                    logging.info('[order succssed!]')
+            else:
+                logging.info('[order succssed!]')
+        else:
+            logging.info('[order failed!]')
+            return
+
+    def policy(self, allsymbol):
+        coins = self.getCoinList(allsymbol)
+        tradesymbol = self.getTradeSymbol(coins)
         for symbols in tradesymbol:
             print(symbols)
-            print(api.getTradeAmount(symbols))
+            self.toBtc()
+            amount = self.getTradeAmount(symbols)
+            if amount > 0.0001:
+                self.doTrade(symbols, amount)
+
+
+if __name__ == '__main__':
+    api = okex()
+    symbols = ['eos', 'ltc']
+    while(1):
+        api.policy(symbols)
