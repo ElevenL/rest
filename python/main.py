@@ -84,7 +84,8 @@ class okex():
         :param amount:
         :return: order_id
         '''
-        logging.info('[order]' + symbol + '|' + type+ '|' + str(price) + '|' + str(amount))
+        if price != '':
+            logging.info('[order]' + symbol + '|' + type+ '|' + str(price) + '|' + str(amount))
         rsp = json.loads(self.okcoinSpot.trade(symbol, type, price, amount))
         if 'error_code' in rsp:
             if str(rsp['error_code']) != '1003':
