@@ -421,8 +421,8 @@ class okex():
             logging.debug(self.depth[symbols[3]])
             amount = []
             amount.append(self.depth[symbols[0]]['sell']['price'] * self.depth[symbols[0]]['sell']['amount'])
-            amount.append(self.depth[symbols[1]]['buy']['price'] * self.depth[symbols[1]]['buy']['amount'] * self.depth['eth_btc']['buy']['amount'])
-            amount.append(self.depth[symbols[2]]['sell']['price'] * self.depth[symbols[2]]['sell']['amount'] * self.depth['eth_btc']['buy']['amount'])
+            amount.append(self.depth[symbols[1]]['buy']['price'] * self.depth[symbols[1]]['buy']['amount'] * self.depth['eth_btc']['buy']['price'])
+            amount.append(self.depth[symbols[2]]['sell']['price'] * self.depth[symbols[2]]['sell']['amount'] * self.depth['eth_btc']['buy']['price'])
             amount.append(self.depth[symbols[3]]['buy']['price'] * self.depth[symbols[3]]['buy']['amount'])
             amount.sort()
             logging.debug('amount: %f' % amount[0])
