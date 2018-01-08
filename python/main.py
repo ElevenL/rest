@@ -6,6 +6,7 @@
 from OkcoinSpotAPI import OKCoinSpot
 from OkcoinFutureAPI import OKCoinFuture
 from time import *
+from conf import *
 from itertools import *
 import logging
 import json
@@ -14,7 +15,7 @@ import json
 logging.basicConfig(level=logging.DEBUG,
                 format='%(asctime)s %(levelname)s %(message)s',
                 datefmt='%a, %d %b %Y %H:%M:%S',
-                filename='log',
+                filename='/root/okex/rest/python/log',
                 filemode='a')
 
 SYMBOL = ['ace', 'act', 'amm', 'ark', 'ast', 'avt', 'bnt', 'btm', 'cmt', 'ctr',
@@ -42,8 +43,8 @@ amount = {
 class okex():
     def __init__(self):
         ##初始化apikey，secretkey,url
-        apikey = 'XXXX'
-        secretkey = 'XXXXX'
+        apikey = config.apikey
+        secretkey = config.secretkey
         okcoinRESTURL = 'www.okex.com'   #请求注意：国内账号需要 修改为 www.okcoin.cn
 
         #现货API
