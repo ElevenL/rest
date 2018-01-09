@@ -446,6 +446,7 @@ class okex():
                 status = self.getOrderInfo(symbols[0], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[0], orderId)
+                    self.toBtc()
                     logging.info('cancelOrder!')
                     return
                 else:
@@ -453,6 +454,7 @@ class okex():
             else:
                 logging.info('[order succssed!]')
         else:
+            self.toBtc()
             logging.info('[order failed!]')
             return
 
@@ -470,6 +472,7 @@ class okex():
                 status = self.getOrderInfo(symbols[1], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[1], orderId)
+                    self.toBtc()
                     logging.info('cancelOrder!')
                     return
                 else:
@@ -477,6 +480,7 @@ class okex():
             else:
                 logging.info('[order succssed!]')
         else:
+            self.toBtc()
             logging.info('[order failed!]')
             return
 
@@ -494,6 +498,7 @@ class okex():
                 status = self.getOrderInfo(symbols[2], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[2], orderId)
+                    self.toBtc()
                     logging.info('cancelOrder!')
                     return
                 else:
@@ -501,6 +506,7 @@ class okex():
             else:
                 logging.info('[order succssed!]')
         else:
+            self.toBtc()
             logging.info('[order failed!]')
             return
 
@@ -519,12 +525,14 @@ class okex():
                 if status != 2:
                     self.cancelOrder(symbols[3], orderId)
                     logging.info('cancelOrder!')
+                    self.toBtc()
                     return
                 else:
                     logging.info('[order succssed!]')
             else:
                 logging.info('[order succssed!]')
         else:
+            self.toBtc()
             logging.info('[order failed!]')
             return
 
@@ -533,7 +541,7 @@ class okex():
         tradesymbol = self.getTradeSymbol(coins)
         for symbols in tradesymbol:
             # print(symbols)
-            self.toBtc()
+            # self.toBtc()
             amount = self.getTradeAmount(symbols)
             if amount > 0.00001:
                 self.doTrade(symbols, amount)
