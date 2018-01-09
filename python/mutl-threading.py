@@ -17,7 +17,7 @@ import threading
 logging.basicConfig(level=logging.DEBUG,
                 format='%(asctime)s %(levelname)s %(message)s',
                 datefmt='%a, %d %b %Y %H:%M:%S',
-                filename='log',
+                filename='/root/okex/rest/python/log',
                 filemode='a')
 
 SYMBOL = ['ace', 'act', 'amm', 'ark', 'ast', 'avt', 'bnt', 'btm', 'cmt', 'ctr',
@@ -524,7 +524,7 @@ class okex():
             status = self.getOrderInfo(symbols[2], orderId)
             if status != 2:
                 sleep(0.5)
-                
+
                 status = self.getOrderInfo(symbols[2], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[2], orderId)
