@@ -464,7 +464,7 @@ class okex():
                     self.cancelOrder(symbols[0], orderId)
                     self.toBtc()
                     logging.info('cancelOrder!')
-                    return
+                    # return
                 else:
                     logging.info('[order succssed!]')
             else:
@@ -490,7 +490,7 @@ class okex():
                     self.cancelOrder(symbols[1], orderId)
                     self.toBtc()
                     logging.info('cancelOrder!')
-                    return
+                    # return
                 else:
                     logging.info('[order succssed!]')
             else:
@@ -516,7 +516,7 @@ class okex():
                     self.cancelOrder(symbols[2], orderId)
                     self.toBtc()
                     logging.info('cancelOrder!')
-                    return
+                    # return
                 else:
                     logging.info('[order succssed!]')
             else:
