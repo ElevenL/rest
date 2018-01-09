@@ -5,6 +5,7 @@
 
 from OkcoinSpotAPI import OKCoinSpot
 from OkcoinFutureAPI import OKCoinFuture
+from operator import itemgetter
 from time import *
 from conf import *
 from itertools import *
@@ -65,9 +66,13 @@ class okex():
 
     def getDepth(self, symbol):
         global depth
-        d = self.okcoinSpot.depth(symbol)
-        depth[symbol] = {'sell':{'price':d['asks'][-1][0], 'amount':d['asks'][-1][1]},
-                'buy':{'price':d['bids'][0][0], 'amount':d['bids'][0][1]}}
+        try:
+            d = self.okcoinSpot.depth(symbol)
+            depth[symbol] = {'sell':{'price':d['asks'][-1][0], 'amount':d['asks'][-1][1]},
+                    'buy':{'price':d['bids'][0][0], 'amount':d['bids'][0][1]}}
+        except Exception:
+            logging.debug('api time out!')
+            pass
         # print({'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
         #         'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}})
         # return {'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
@@ -422,19 +427,19 @@ class okex():
                 return 0,0
         ss = (depth[symbols[1]]['buy']['price'] * depth[symbols[3]]['buy']['price']) / (depth[symbols[0]]['sell']['price'] * depth[symbols[2]]['sell']['price'])
         if ss > 1.01:
-            logging.debug('profit: %f' % ss)
-            logging.debug(symbols)
-            logging.debug(depth[symbols[0]])
-            logging.debug(depth[symbols[1]])
-            logging.debug(depth[symbols[2]])
-            logging.debug(depth[symbols[3]])
+            # logging.debug('profit: %f' % ss)
+            # logging.debug(symbols)
+            # logging.debug(depth[symbols[0]])
+            # logging.debug(depth[symbols[1]])
+            # logging.debug(depth[symbols[2]])
+            # logging.debug(depth[symbols[3]])
             amount = []
             amount.append(depth[symbols[0]]['sell']['price'] * min(depth[symbols[0]]['sell']['amount'],
                                                                         depth[symbols[1]]['buy']['amount']))
             amount.append(depth[symbols[3]]['buy']['price'] * min(depth[symbols[3]]['buy']['amount'],
                                                                        depth[symbols[2]]['sell']['amount']))
             amount.sort()
-            logging.debug('amount: %f' % amount[0])
+            # logging.debug('amount: %f' % amount[0])
             return ss,amount[0]
         else:
             return 0,0
@@ -456,6 +461,7 @@ class okex():
                 status = self.getOrderInfo(symbols[0], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[0], orderId)
+                    self.toBtc()
                     logging.info('cancelOrder!')
                     return
                 else:
@@ -463,6 +469,7 @@ class okex():
             else:
                 logging.info('[order succssed!]')
         else:
+            self.toBtc()
             logging.info('[order failed!]')
             return
 
@@ -480,6 +487,7 @@ class okex():
                 status = self.getOrderInfo(symbols[1], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[1], orderId)
+                    self.toBtc()
                     logging.info('cancelOrder!')
                     return
                 else:
@@ -487,6 +495,7 @@ class okex():
             else:
                 logging.info('[order succssed!]')
         else:
+            self.toBtc()
             logging.info('[order failed!]')
             return
 
@@ -504,6 +513,7 @@ class okex():
                 status = self.getOrderInfo(symbols[2], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[2], orderId)
+                    self.toBtc()
                     logging.info('cancelOrder!')
                     return
                 else:
@@ -511,6 +521,7 @@ class okex():
             else:
                 logging.info('[order succssed!]')
         else:
+            self.toBtc()
             logging.info('[order failed!]')
             return
 
@@ -529,32 +540,50 @@ class okex():
                 if status != 2:
                     self.cancelOrder(symbols[3], orderId)
                     logging.info('cancelOrder!')
+                    self.toBtc()
                     return
                 else:
                     logging.info('[order succssed!]')
             else:
                 logging.info('[order succssed!]')
         else:
+            self.toBtc()
             logging.info('[order failed!]')
             return
 
     def policy(self, allsymbol):
+        self.getBalance()
         coins = self.getCoinList(allsymbol)
         tradesymbol = self.getTradeSymbol(coins)
+        pp = []
         for symbols in tradesymbol:
             # print(symbols)
             # self.toBtc()
             profit, amount = self.getTradeAmount(symbols)
             if amount > 0.0001:
+                one = {}
+                one['symbol'] = symbols
+                one['amount'] = profit
+                one['total'] = profit * amount
+                pp.append(one)
                 # self.doTrade(symbols, amount)
-                print(symbols)
-                print(profit, amount)
+                logging.debug(symbols)
+                logging.debug('profit: %f' % profit)
+                logging.debug('amount: %f' % amount)
+                logging.debug(depth[symbols[0]])
+                logging.debug(depth[symbols[1]])
+                logging.debug(depth[symbols[2]])
+                logging.debug(depth[symbols[3]])
+        if len(pp) != 0:
+            st = sorted(pp, key=itemgetter('total'))
+            self.doTrade(st[-1]['symbol'],st[-1]['amount'])
 
 if __name__ == '__main__':
     api = okex()
     symbols = ['eos_btc', 'ltc_btc']
     # while(1):
     #     api.policy(SYMBOL)
+    global depth
     while(1):
         threads = []
         for ss in SYMBOL:
@@ -562,11 +591,12 @@ if __name__ == '__main__':
             threads.append(threading.Thread(target=api.getDepth, args=(s,)))
             e = ss + "_eth"
             threads.append(threading.Thread(target=api.getDepth, args=(e,)))
-        print(time())
+        # print(time())
         for t in threads:
             t.start()
         t.join()
         # print(depth)
         api.policy(SYMBOL)
-        print(time())
-        sleep(3)
+        depth = {}
+        # print(time())
+        sleep(1)
