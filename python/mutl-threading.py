@@ -445,14 +445,15 @@ class okex():
             return 0,0
 
     def doTrade(self, symbols, amount):
+        global depth
         if self.balance['btc'] < amount * 0.9:
             initamount = self.balance['btc'] * 0.99
         else:
             initamount = amount * 0.9
 
         logging.debug('step1')
-        amount1 = round(initamount / self.depth[symbols[0]]['sell']['price'], 8)
-        orderId = self.trade(symbols[0], 'buy', self.depth[symbols[0]]['sell']['price'], amount1)
+        amount1 = round(initamount / depth[symbols[0]]['sell']['price'], 8)
+        orderId = self.trade(symbols[0], 'buy', depth[symbols[0]]['sell']['price'], amount1)
         if orderId:
             logging.info('[orderId]' + str(orderId))
             status = self.getOrderInfo(symbols[0], orderId)
@@ -478,7 +479,7 @@ class okex():
         logging.info('[Balance]')
         logging.info(self.balance)
         amount2 = self.balance[symbols[1].split('_')[0]]
-        orderId = self.trade(symbols[1], 'sell', self.depth[symbols[1]]['buy']['price'], amount2)
+        orderId = self.trade(symbols[1], 'sell', depth[symbols[1]]['buy']['price'], amount2)
         if orderId:
             logging.info('[orderId]' + str(orderId))
             status = self.getOrderInfo(symbols[1], orderId)
@@ -503,8 +504,8 @@ class okex():
         self.getBalance()
         logging.info('[Balance]')
         logging.info(self.balance)
-        amount3 = round((self.balance[symbols[2].split('_')[1]] / self.depth[symbols[2]]['sell']['price']) * 0.998, 8)
-        orderId = self.trade(symbols[2], 'buy', self.depth[symbols[2]]['sell']['price'], amount3)
+        amount3 = round((self.balance[symbols[2].split('_')[1]] / depth[symbols[2]]['sell']['price']) * 0.998, 8)
+        orderId = self.trade(symbols[2], 'buy', depth[symbols[2]]['sell']['price'], amount3)
         if orderId:
             logging.info('[orderId]' + str(orderId))
             status = self.getOrderInfo(symbols[2], orderId)
@@ -530,7 +531,7 @@ class okex():
         logging.info('[Balance]')
         logging.info(self.balance)
         amount4 = self.balance[symbols[3].split('_')[0]]
-        orderId = self.trade(symbols[3], 'sell', self.depth[symbols[3]]['buy']['price'], amount4)
+        orderId = self.trade(symbols[3], 'sell', depth[symbols[3]]['buy']['price'], amount4)
         if orderId:
             logging.info('[orderId]' + str(orderId))
             status = self.getOrderInfo(symbols[3], orderId)
