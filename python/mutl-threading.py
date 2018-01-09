@@ -524,6 +524,7 @@ class okex():
             status = self.getOrderInfo(symbols[2], orderId)
             if status != 2:
                 sleep(0.5)
+                
                 status = self.getOrderInfo(symbols[2], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[2], orderId)
