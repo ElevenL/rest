@@ -71,7 +71,7 @@ class okex():
             depth[symbol] = {'sell':{'price':d['asks'][-1][0], 'amount':d['asks'][-1][1]},
                     'buy':{'price':d['bids'][0][0], 'amount':d['bids'][0][1]}}
         except Exception:
-            logging.debug('api time out!')
+            logging.debug('getDepth api error!')
             pass
         # print({'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
         #         'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}})
@@ -84,9 +84,12 @@ class okex():
         :return:
         '''
         self.balance = {}
-        info = json.loads(self.okcoinSpot.userinfo())
-        for symbol in info['info']['funds']['free'].keys():
-            self.balance[symbol] = float(info['info']['funds']['free'][symbol])
+        try:
+            info = json.loads(self.okcoinSpot.userinfo())
+            for symbol in info['info']['funds']['free'].keys():
+                self.balance[symbol] = float(info['info']['funds']['free'][symbol])
+        except Exception:
+            logging.debug('getBalance api error!')
 
     def trade(self, symbol, type, price, amount):
         '''
@@ -99,13 +102,17 @@ class okex():
         '''
         if price != '':
             logging.info('[order]' + symbol + '|' + type+ '|' + str(price) + '|' + str(amount))
-        rsp = json.loads(self.okcoinSpot.trade(symbol, type, price, amount))
-        if 'error_code' in rsp:
-            if str(rsp['error_code']) != '1003':
-                logging.info('[trade error]' + str(rsp['error_code']))
+        try:
+            rsp = json.loads(self.okcoinSpot.trade(symbol, type, price, amount))
+            if 'error_code' in rsp:
+                if str(rsp['error_code']) != '1003':
+                    logging.info('[trade error]' + str(rsp['error_code']))
+                return False
+            if rsp['result']:
+                return rsp['order_id']
+        except Exception:
+            logging.debug('trade api error!')
             return False
-        if rsp['result']:
-            return rsp['order_id']
 
     def getOrderInfo(self, symbol, order_id):
         '''
@@ -114,13 +121,17 @@ class okex():
         :param order_id:
         :return: order_status: -1:已撤销  0:未成交  1:部分成交  2:完全成交 3:撤单处理中
         '''
-        rsp = json.loads(self.okcoinSpot.orderinfo(symbol, order_id))
-        if 'error_code' in rsp:
-            logging.info('[getOrderInfo error]' + str(rsp['error_code']))
-            return False
-        if rsp['result']:
-            return int(rsp['orders'][0]['status'])
-        else:
+        try:
+            rsp = json.loads(self.okcoinSpot.orderinfo(symbol, order_id))
+            if 'error_code' in rsp:
+                logging.info('[getOrderInfo error]' + str(rsp['error_code']))
+                return False
+            if rsp['result']:
+                return int(rsp['orders'][0]['status'])
+            else:
+                return False
+        except Exception:
+            logging.debug('getOrderInfo api error!')
             return False
 
     def toBtc(self):
@@ -139,11 +150,15 @@ class okex():
         :param order_id:
         :return: True or False
         '''
-        rsp = json.loads(self.okcoinSpot.cancelOrder(symbol, order_id))
-        if 'error_code' in rsp:
-            logging.info('[cancelOrder error]' + str(rsp['error_code']))
+        try:
+            rsp = json.loads(self.okcoinSpot.cancelOrder(symbol, order_id))
+            if 'error_code' in rsp:
+                logging.info('[cancelOrder error]' + str(rsp['error_code']))
+                return False
+            return rsp['result']
+        except Exception:
+            logging.debug('cancelOrder api error!')
             return False
-        return rsp['result']
 
     def good_trade(self, symbols, Threshold=1.02):
         '''
@@ -462,7 +477,6 @@ class okex():
                 status = self.getOrderInfo(symbols[0], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[0], orderId)
-                    self.toBtc()
                     logging.info('cancelOrder!')
                     # return
                 else:
@@ -488,7 +502,6 @@ class okex():
                 status = self.getOrderInfo(symbols[1], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[1], orderId)
-                    self.toBtc()
                     logging.info('cancelOrder!')
                     # return
                 else:
@@ -514,7 +527,6 @@ class okex():
                 status = self.getOrderInfo(symbols[2], orderId)
                 if status != 2:
                     self.cancelOrder(symbols[2], orderId)
-                    self.toBtc()
                     logging.info('cancelOrder!')
                     # return
                 else:
