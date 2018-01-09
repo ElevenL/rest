@@ -40,9 +40,11 @@ amount = {
     'mco_eth': 0.8,
 }
 
+global depth
 
 class okex():
     def __init__(self):
+        global depth
         ##初始化apikey，secretkey,url
         apikey = config.apikey
         secretkey = config.secretkey
@@ -55,15 +57,17 @@ class okex():
         self.okcoinFuture = OKCoinFuture(okcoinRESTURL, apikey, secretkey)
 
         self.depth = {}
+        depth = {}
 
 
     def getTicker(self, symbol):
         return self.okcoinSpot.ticker(symbol)['ticker']
 
     def getDepth(self, symbol):
-        depth = self.okcoinSpot.depth(symbol)
-        self.depth[symbol] = {'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
-                'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}}
+        global depth
+        d = self.okcoinSpot.depth(symbol)
+        depth[symbol] = {'sell':{'price':d['asks'][-1][0], 'amount':d['asks'][-1][1]},
+                'buy':{'price':d['bids'][0][0], 'amount':d['bids'][0][1]}}
         # print({'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
         #         'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}})
         # return {'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
@@ -411,28 +415,29 @@ class okex():
         return ts
 
     def getTradeAmount(self, symbols):
-        for symbol in symbols:
-            self.getDepth(symbol)
-            self.getDepth('eth_btc')
-            # print(api.depth[symbol])
-        ss = (self.depth[symbols[1]]['buy']['price'] * self.depth[symbols[3]]['buy']['price']) / (self.depth[symbols[0]]['sell']['price'] * self.depth[symbols[2]]['sell']['price'])
+        global depth
+        # print(len(depth))
+        for s in symbols:
+            if s not in depth.keys():
+                return 0,0
+        ss = (depth[symbols[1]]['buy']['price'] * depth[symbols[3]]['buy']['price']) / (depth[symbols[0]]['sell']['price'] * depth[symbols[2]]['sell']['price'])
         if ss > 1.01:
             logging.debug('profit: %f' % ss)
             logging.debug(symbols)
-            logging.debug(self.depth[symbols[0]])
-            logging.debug(self.depth[symbols[1]])
-            logging.debug(self.depth[symbols[2]])
-            logging.debug(self.depth[symbols[3]])
+            logging.debug(depth[symbols[0]])
+            logging.debug(depth[symbols[1]])
+            logging.debug(depth[symbols[2]])
+            logging.debug(depth[symbols[3]])
             amount = []
-            amount.append(self.depth[symbols[0]]['sell']['price'] * self.depth[symbols[0]]['sell']['amount'])
-            amount.append(self.depth[symbols[1]]['buy']['price'] * self.depth[symbols[1]]['buy']['amount'] * self.depth['eth_btc']['buy']['price'])
-            amount.append(self.depth[symbols[2]]['sell']['price'] * self.depth[symbols[2]]['sell']['amount'] * self.depth['eth_btc']['buy']['price'])
-            amount.append(self.depth[symbols[3]]['buy']['price'] * self.depth[symbols[3]]['buy']['amount'])
+            amount.append(depth[symbols[0]]['sell']['price'] * min(depth[symbols[0]]['sell']['amount'],
+                                                                        depth[symbols[1]]['buy']['amount']))
+            amount.append(depth[symbols[3]]['buy']['price'] * min(depth[symbols[3]]['buy']['amount'],
+                                                                       depth[symbols[2]]['sell']['amount']))
             amount.sort()
             logging.debug('amount: %f' % amount[0])
-            return amount[0]
+            return ss,amount[0]
         else:
-            return 0
+            return 0,0
 
     def doTrade(self, symbols, amount):
         if self.balance['btc'] < amount * 0.9:
@@ -538,25 +543,30 @@ class okex():
         tradesymbol = self.getTradeSymbol(coins)
         for symbols in tradesymbol:
             # print(symbols)
-            self.toBtc()
-            amount = self.getTradeAmount(symbols)
-            if amount > 0.00001:
-                self.doTrade(symbols, amount)
-
+            # self.toBtc()
+            profit, amount = self.getTradeAmount(symbols)
+            if amount > 0.0001:
+                # self.doTrade(symbols, amount)
+                print(symbols)
+                print(profit, amount)
 
 if __name__ == '__main__':
     api = okex()
     symbols = ['eos_btc', 'ltc_btc']
     # while(1):
     #     api.policy(SYMBOL)
-    threads = []
-    for ss in SYMBOL:
-        s = ss + "_btc"
-        threads.append(threading.Thread(target=api.getDepth, args=(s,)))
-        e = ss + "_eth"
-        threads.append(threading.Thread(target=api.getDepth, args=(s,)))
-    print(time())
-    for t in threads:
-        t.start()
-    t.join()
-    print(time())
+    while(1):
+        threads = []
+        for ss in SYMBOL:
+            s = ss + "_btc"
+            threads.append(threading.Thread(target=api.getDepth, args=(s,)))
+            e = ss + "_eth"
+            threads.append(threading.Thread(target=api.getDepth, args=(e,)))
+        print(time())
+        for t in threads:
+            t.start()
+        t.join()
+        # print(depth)
+        api.policy(SYMBOL)
+        print(time())
+        sleep(3)
