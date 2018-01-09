@@ -67,7 +67,10 @@ class okex():
     def getDepth(self, symbol):
         while(1):
             sleep(0.5)
-            depth = self.okcoinSpot.depth(symbol)
+            try:
+                depth = self.okcoinSpot.depth(symbol)
+            except Exception:
+                pass
             DEPTH[symbol] = {'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
                     'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}}
             print(symbol)
@@ -572,7 +575,7 @@ if __name__ == '__main__':
     # while(1):
     #     api.policy(SYMBOL)
     ps = []
-    for s in SYMBOL:
+    for s in SYMBOL[:10]:
         p1 = s + '_btc'
         p2 = s + '_eth'
         ps.append(multiprocessing.Process(target=api.getDepth, args=(p1,)))
