@@ -64,10 +64,10 @@ class okex():
         depth = self.okcoinSpot.depth(symbol)
         self.depth[symbol] = {'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
                 'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}}
-        print({'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
-                'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}})
-        return {'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
-                'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}}
+        # print({'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
+        #         'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}})
+        # return {'sell':{'price':depth['asks'][-1][0], 'amount':depth['asks'][-1][1]},
+        #         'buy':{'price':depth['bids'][0][0], 'amount':depth['bids'][0][1]}}
 
     def getBalance(self):
         '''
@@ -550,12 +550,12 @@ if __name__ == '__main__':
     # while(1):
     #     api.policy(SYMBOL)
     threads = []
-    print(time())
     for ss in SYMBOL:
         s = ss + "_btc"
         threads.append(threading.Thread(target=api.getDepth, args=(s,)))
         e = ss + "_eth"
         threads.append(threading.Thread(target=api.getDepth, args=(s,)))
+    print(time())
     for t in threads:
         t.start()
     t.join()
