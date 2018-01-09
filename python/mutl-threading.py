@@ -564,7 +564,7 @@ class okex():
             if amount > 0.0001:
                 one = {}
                 one['symbol'] = symbols
-                one['amount'] = profit
+                one['amount'] = amount
                 one['total'] = profit * amount
                 pp.append(one)
                 # self.doTrade(symbols, amount)
